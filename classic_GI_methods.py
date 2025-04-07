@@ -116,3 +116,4 @@ if __name__ == "__main__":
 
     main(args.GI_cnt,args.demo_file,args.new_size,args.iter_cnt,args.luminance_index,args.saved_flag, args.display_flag)
 
+
