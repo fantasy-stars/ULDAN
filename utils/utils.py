@@ -1,6 +1,6 @@
 import numpy as np
 import scipy
-
+import os
 
 def set_requires_grad(model, requires_grad=True):
     for param in model.parameters():
@@ -112,7 +112,29 @@ class EarlyStopping:
             # self.save_checkpoint(val_loss, model)
             self.counter = 0
 
-if __name__ == '__main__':
+def save_to_binary_file(file_path, byte_data):
+    with open(file_path, 'ab' if os.path.exists(file_path) else 'wb') as file:
+        file.write(byte_data)
 
-    data=walsh_func(64)
-    print(type(data))
+def read_h265_file(file_path):
+    with open(file_path, 'rb') as file:
+        file_content = file.read()
+        file_length = len(file_content)
+
+        return file_content
+
+def numpy_to_bytes(numpy_array):
+    if numpy_array.ndim != 1:
+        raise ValueError("Input numpy array must be one-dimensional")
+
+    reshaped_array = numpy_array.reshape(-1, 8)
+    
+    byte_list = []
+    
+    for row in reshaped_array:
+        byte = int(''.join(row.astype(str)), 2)
+        byte_list.append(byte)
+    
+    byte_data = bytes(byte_list)
+    
+    return byte_data
