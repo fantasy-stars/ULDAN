@@ -1,12 +1,8 @@
-# from sympy import im
 import torch
-import torchvision
 import numpy as np
-import random
 import scipy
-from torch.utils.data import DataLoader,Dataset,TensorDataset
+from torch.utils.data import DataLoader,TensorDataset
 import torch.nn as nn
-import torch.nn.functional as F
 from model.net_AE_v1_binary import net_AE_w_tanh_binaryloss_v1
 from model.net_AE_v2_binary import net_AE_w_tanh_binaryloss_v2
 from model.net_AE_v3_binary import net_AE_w_tanh_binaryloss_v3
@@ -14,18 +10,13 @@ from model.mse_binary_loss import mse_binary_loss
 from model.mse_binary_orthogonal_loss import mse_binaryorthognal_loss
 import argparse
 from tqdm import tqdm
-from sklearn import preprocessing
 from utils.utils import EarlyStopping
-from matplotlib import pyplot as plt
 from functions.cal_corr_from_tensor import cal_corr_tensor
 from functions.cal_ssim_from_tensor import cal_ssim_tensor
 from functions.cal_mse_from_tensor import cal_mse_tensor
 from functions.cal_acc_from_tensor import cal_acc_tensor
-# from skimage.metrics import structural_similarity as ssim
 from utils.utils import walsh_func,cake_cutting_func,random_binary_func
-
 import os
-import cv2
 
 def main(args):
     print(torch.cuda.is_available())
@@ -85,23 +76,12 @@ def main(args):
     else:
         fixed_mask=None
     
-    if model_name=='net_AE_w_tanh_v1':
-        model=net_AE_w_tanh_v1(shape_x=shape_x,M=captured_M).to(device)
-    elif model_name=='net_AE_w_tanh_binaryloss_v1':
+    if model_name=='net_AE_w_tanh_binaryloss_v1':
         model=net_AE_w_tanh_binaryloss_v1(shape_x=shape_x,M=captured_M,fixed_mask=fixed_mask).to(device)
-        assert args.loss_name in ['mse_binaryorthognal_loss', 'mse_binary_loss', 'mse_binaryv2_loss']
+        assert args.loss_name in ['mse_binaryorthognal_loss', 'mse_binary_loss']
     elif model_name=='net_AE_w_tanh_binaryloss_v2':
         model=net_AE_w_tanh_binaryloss_v2(shape_x=shape_x,M=captured_M,fixed_mask=fixed_mask).to(device)
-        assert args.loss_name in ['mse_binaryorthognal_loss', 'mse_binary_loss', 'mse_binaryv2_loss']
-    elif model_name=='net_AE_w_tanh_gray2binaryloss_v3':
-        model=net_AE_w_tanh_gray2binaryloss_v3(shape_x=shape_x,shape_x2=shape_x2,shape_y=shape_x,M=captured_M,fixed_mask=fixed_mask,mask_trainable=mask_trainable_flag,snr_db=10).to(device)
-        assert args.loss_name in ['mse_binaryorthognal_loss', 'mse_binary_loss', 'mse_binaryv2_loss']
-    elif model_name=='net_AE_w_tanh_BinaryOrthogonalityloss_v2':
-        model=net_AE_w_tanh_BinaryOrthogonalityloss_v2(shape_x=shape_x,M=captured_M).to(device)
-        assert args.loss_name in ['mse_binaryorthognal_loss', 'mse_binary_loss', 'mse_binaryv2_loss']
-    elif model_name=='net_AE_w_tanh_BinaryOrthogonalityloss_v3':
-        model=net_AE_w_tanh_BinaryOrthogonalityloss_v3(shape_x=shape_x,M=captured_M).to(device)
-        assert args.loss_name in ['mse_binaryorthognal_loss', 'mse_binary_loss', 'mse_binaryv2_loss']
+        assert args.loss_name in ['mse_binaryorthognal_loss', 'mse_binary_loss']
     else:
         raise NameError('model_name设置不正确')
 
@@ -127,7 +107,6 @@ def main(args):
     else:
         mask_extra='NN'
 
-
     saved_model_file=''
 
     if not os.path.exists(saved_model_file):
@@ -136,7 +115,7 @@ def main(args):
         f.writelines([saved_model_file,'\n'])
 
     optimizer=torch.optim.Adam(model.parameters(),lr=learning_rate)
-    lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,'min',factor=0.90,patience=3,verbose=True,min_lr=0.000001)# total_step=len(train_loader)
+    lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,'min',factor=0.90,patience=3,verbose=True,min_lr=0.000001)
     
     early_stopping = EarlyStopping(patience=args.early_stop_patience)
 
@@ -157,16 +136,16 @@ def main(args):
             if model_name=='net_AE_w_tanh_v1':
                 outputs=model(images)
                 loss=criterion(outputs,labels)
-            elif model_name in ['net_AE_w_tanh_binaryloss_v1', 'net_AE_w_tanh_binaryloss_v2','net_AE_w_tanh_gray2binaryloss_v3','net_AE_w_tanh_BinaryOrthogonalityloss_v2','net_AE_w_tanh_BinaryOrthogonalityloss_v3']:
+            elif model_name in ['net_AE_w_tanh_binaryloss_v1', 'net_AE_w_tanh_binaryloss_v2']:
                 outputs, mask_mat=model(images)
                 if loss_name in ['mse_binaryv2_loss', 'mse_binary_loss']:
                     loss, mse_loss, binary_loss=criterion(outputs,labels,mask_mat)
                 elif loss_name=='mse_binaryorthognal_loss':
                     loss, mse_loss, binary_loss, orthogonality_loss=criterion(outputs,labels,mask_mat)
                 else:
-                    raise NameError('loss_name设置不正确')
+                    raise NameError('Wrong: loss_name.....')
             else:
-                raise NameError('model_name设置不正确')
+                raise NameError('Wrong: model_name.....')
 
 
             train_loss+=loss.item()
@@ -194,7 +173,7 @@ def main(args):
                 if model_name=='net_AE_w_tanh_v1':
                     outputs=model(images)
                     loss=criterion(outputs,labels)
-                elif model_name in ['net_AE_w_tanh_binaryloss_v1','net_AE_w_tanh_binaryloss_v2', 'net_AE_w_tanh_gray2binaryloss_v3','net_AE_w_tanh_BinaryOrthogonalityloss_v2','net_AE_w_tanh_BinaryOrthogonalityloss_v3']:
+                elif model_name in ['net_AE_w_tanh_binaryloss_v1','net_AE_w_tanh_binaryloss_v2']:
                     outputs, mask_mat=model(images)
                     if loss_name in ['mse_binaryv2_loss', 'mse_binary_loss']:
                         loss, mse_loss, binary_loss=criterion(outputs,labels,mask_mat)
@@ -204,9 +183,9 @@ def main(args):
                         val_orthogonal+=orthogonality_loss.item()
                         val_binary+=binary_loss.item()
                     else:
-                        raise NameError('loss_name设置不正确')
+                        raise NameError('Wrong: loss_name.....')
                 else:
-                    raise NameError('model_name设置不正确')
+                    raise NameError('Wrong: model_name.....')
 
                 val_loss+=loss.item()
                 val_corr+=cal_corr_tensor(outputs,labels)
@@ -243,7 +222,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--num_epochs", type=int, default=500)
+    parser.add_argument("--num_epochs", type=int, default=200)
     parser.add_argument("--learning_rate", type=float, default=0.001)    
     parser.add_argument("--batch_size", type=int, default=128)
 
@@ -261,7 +240,6 @@ if __name__ == "__main__":
     parser.add_argument("--all_len", type=int, default=0)
     parser.add_argument("--dataset_name", type=str, default="")
     parser.add_argument("--input_data_npy_file", type=str, default='')
-
 
     args = parser.parse_args()
 
