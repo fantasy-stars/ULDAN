@@ -1,9 +1,7 @@
 import torch
 import os
 from torch import nn
-import sys
-sys.path.append('..')
-from utils.utils import set_requires_grad,dataloader_func,loop_iterable,mkdir_func,test_func_acc,test_func_corr_ssim,split_train_test
+from utils.utils import set_requires_grad,loop_iterable,test_func_acc,test_func_corr_ssim,split_train_test
 from utils.utils import EarlyStopping
 from model.D_net_v1 import discriminator_v1
 from model.target_net_decoder_v1 import target_net_decoder_v1
@@ -184,8 +182,4 @@ if __name__ == '__main__':
     args = arg_parser.parse_args()
 
     main(args)
-
-
-
-
 
