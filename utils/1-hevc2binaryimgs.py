@@ -4,7 +4,6 @@ import numpy as np
 from scipy.io import savemat
 from utils import read_h265_file,save_to_binary_file,numpy_to_bytes
 
-
 if __name__=='__main__':
     H_265_file='crf28.hevc'
     file_content=read_h265_file(H_265_file)

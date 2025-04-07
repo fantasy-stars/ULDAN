@@ -1,9 +1,6 @@
 from skimage.metrics import structural_similarity as ssim
 import numpy as np
-import cv2
 import math
-import os
-import sys
 
 def ssim_func(img1,img2):
     if np.mean(img1)<1e-4:
@@ -66,9 +63,4 @@ def cal_decoder_matrics(outputs_tensor,labels_target_tensor):
         val_de_psnr+=psnr_func(recover_imgs[cnt], labels_target[cnt])
 
     return val_de_mse,val_de_corr,val_de_ssim,val_de_psnr
-
-
-
-
-
 

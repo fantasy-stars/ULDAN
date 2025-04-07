@@ -6,7 +6,6 @@ def set_requires_grad(model, requires_grad=True):
     for param in model.parameters():
         param.requires_grad = requires_grad
 
-
 def cake_cutting_func(shape):
     N = int(np.log2(shape))
     x = scipy.linalg.hadamard(shape)
@@ -138,3 +137,4 @@ def numpy_to_bytes(numpy_array):
     byte_data = bytes(byte_list)
     
     return byte_data
+

@@ -5,7 +5,6 @@ import scipy
 from scipy.io import savemat
 from utils import read_h265_file,save_to_binary_file,numpy_to_bytes
 
-
 if __name__=='__main__':
     mat_data = scipy.io.loadmat('xxx.mat')
     recover_data = mat_data['decoder_data_all'].flatten()

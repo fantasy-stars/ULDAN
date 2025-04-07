@@ -9,4 +9,3 @@ numpy_array = np.array(array, dtype=np.int8)
 
 shape_x=64
 pad_len=shape_x**2-(numpy_array.shape[0] % (shape_x**2))
-print(pad_len)

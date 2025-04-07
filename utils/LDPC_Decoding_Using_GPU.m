@@ -45,3 +45,4 @@ for ii = 1:length(snr)
     
     errRate(ii,:) = ttlErr/ttlBits;
 end
+
