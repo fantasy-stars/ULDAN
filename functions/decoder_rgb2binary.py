@@ -1,7 +1,4 @@
 import numpy as np
-from tqdm import tqdm
-import os
-import cv2
 
 def decoder_bit2gray(src): # src 0-255
     ori_w, ori_h=src.shape[0],src.shape[1]
@@ -18,5 +15,4 @@ def decoder_bit2gray(src): # src 0-255
             b[i, j] = decimal_value
 
     return b
-
 

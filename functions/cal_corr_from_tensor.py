@@ -12,3 +12,4 @@ def cal_corr_tensor(tensor_data_1,tensor_data_2):
         total_corr+=np.corrcoef(img1, img2)[0, 1]
         
     return total_corr
+

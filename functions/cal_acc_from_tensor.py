@@ -11,3 +11,4 @@ def cal_acc_tensor(tensor_data_1,tensor_data_2):
     total_acc=np.sum(data1==data2)/data1.size*data1.shape[0]
 
     return total_acc
+

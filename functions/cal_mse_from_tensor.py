@@ -9,3 +9,4 @@ def cal_mse_tensor(tensor_data_1,tensor_data_2):
         total_mse+=np.sum((img1-img2)**2)/(img1.size)
         
     return total_mse
+

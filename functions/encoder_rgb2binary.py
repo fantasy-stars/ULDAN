@@ -1,7 +1,4 @@
 import numpy as np
-from tqdm import tqdm
-import os
-import cv2
 
 def encoder_gray2bit(src):
     ori_size=src.shape[0]
@@ -16,5 +13,4 @@ def encoder_gray2bit(src):
             b[row_start:row_start + 2, col_start:col_start + 4] = a_bin[i, j].reshape(2,4)
 
     return b
-
 

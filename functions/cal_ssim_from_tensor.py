@@ -9,3 +9,4 @@ def cal_ssim_tensor(tensor_data_1,tensor_data_2):
         total_ssim+=ssim(img1,img2,data_range=1)
         
     return total_ssim
+
