@@ -3,6 +3,7 @@ import torch
 import torch
 import torch.nn as nn
 
+# Can be replaced with the desired noise dist.
 class NoisyLayer(nn.Module):
     def __init__(self, noise_std, seed=None):
         super(NoisyLayer, self).__init__()
@@ -12,14 +13,12 @@ class NoisyLayer(nn.Module):
             torch.manual_seed(seed)
 
     def forward(self, x):
-        if self.training:  # 只在训练时添加噪声
+        if self.training:
             noise = torch.randn_like(x) * self.noise_std
             return x + noise
         else:
             return x
 
-# 之前net_AE_w_tanh_binaryloss_v1对于随机图案性能不好
-# 这里v2来调整网络结构
 class net_AE_w_tanh_binaryloss_v2(nn.Module):
     def __init__(self, shape_x=128, M=666, fixed_mask=None):
         super(net_AE_w_tanh_binaryloss_v2, self).__init__()
@@ -35,7 +34,7 @@ class net_AE_w_tanh_binaryloss_v2(nn.Module):
             nn.ReLU(),
             nn.BatchNorm1d(shape_x**2),  
         )
-        self.noise_layer = NoisyLayer(noise_std=0.8, seed=2024)  # 添加噪声层，并设置种子
+        self.noise_layer = NoisyLayer(noise_std=0.8, seed=2024)
         self.reconstruct = nn.Sequential(
             # conv1
             nn.Conv2d(1, 8, 3, 1, 1),
@@ -55,22 +54,7 @@ class net_AE_w_tanh_binaryloss_v2(nn.Module):
         self.reconstruct2 = nn.Sequential(
             nn.Linear(2048, shape_x**2),
         )
-        '''
-            model_input = Input(shape=input_shape)
 
-    x = Conv2D(8, kernel_size=(3, 3), activation='relu')(model_input)
-    x = BatchNormalization(axis=-1)(x)
-    x = Dropout(0.4)(x) #
-
-    x = Conv2D(8, kernel_size=(3, 3), strides=2, activation='relu')(x)
-    x = BatchNormalization(axis=-1)(x)
-    x = Dropout(0.4)(x)
-
-    x = Flatten()(x)
-    x = Dense(outsize, activation='sigmoid')(x)
-
-    cnn = Model(inputs=model_input, outputs=x)
-        '''
         self.tanh = nn.Tanh()
 
     def forward(self, x):
@@ -87,15 +71,13 @@ class net_AE_w_tanh_binaryloss_v2(nn.Module):
 
         return x, self.mask_mat
 
-
-
 if __name__ == "__main__":
-    # 测试网络结构
+
     shape_x=32
     M=66
 
     network = net_AE_w_tanh_binaryloss_v2(shape_x=shape_x,M=M)
-    input_tensor = torch.randn(10,shape_x,shape_x)  # 输入张量的示例，大小为[batch_size, channels, height, width]
+    input_tensor = torch.randn(10,shape_x,shape_x)
     output_tensor, out_maskmat = network(input_tensor)
-    print("Output tensor shape:", output_tensor.shape)  # 输出张量的形状
+    print("Output tensor shape:", output_tensor.shape)
     print("Output mask mat shape:", out_maskmat.shape)

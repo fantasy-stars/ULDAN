@@ -2,7 +2,6 @@ import torch.nn as nn
 import torch
 import torch.nn.init as init
 
-device=torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 def initialize_weights(net_l, scale=1):
     if not isinstance(net_l, list):
         net_l = [net_l]
@@ -240,83 +239,33 @@ class UNet(nn.Module):
             x = self.act(conv_func(x, self.nin_b, blindspot))
             x = conv_func(x, self.nin_c, blindspot)
         return x
-
-
-# Can be replaced with the desired noise dist.
-def awgn_noise(signal, snr_db):
-    signal_power = torch.mean(torch.abs(signal) ** 2)    
-    noise_power = signal_power / (10 ** (snr_db / 10))    
-    noise = torch.sqrt(noise_power)*torch.randn(signal.shape).to(device)
-
-    return noise
-
-class NoisyLayer(nn.Module):
-    def __init__(self, noise_std, snr_db=None, seed=None):
-        super(NoisyLayer, self).__init__()
-        self.noise_std = noise_std
-        self.seed = seed
-        self.snr_db=snr_db
-        if self.seed is not None:
-            torch.manual_seed(seed)
-
-    def forward(self, x):
-        if self.training:
-            noise=torch.zeros_like(x)
-            if self.snr_db is not None:
-                noise+=awgn_noise(x,self.snr_db)
-            return x + noise
-        else:
-            return x
-
-class net_AE_w_tanh_binaryloss_v3(nn.Module):
-    def __init__(self, shape_x=128,shape_x2=None, M=666, fixed_mask=None, mask_trainable=False):
-        super(net_AE_w_tanh_binaryloss_v3, self).__init__()
-        self.shape_x = shape_x
-        if shape_x2==None:
-            self.shape_x2=shape_x
-        else:
-            self.shape_x2=shape_x2        
+    
+class target_net_decoder_v2(nn.Module):
+    def __init__(self,M=666, shape_y=32):
+        super(target_net_decoder_v2, self).__init__()
+        self.shape_y = shape_y
         
-        if fixed_mask is None:
-            self.mask_mat = nn.Parameter(torch.randn(shape_x*shape_x2, M))
-            # self.mask_mat = nn.Parameter(torch.zeros(shape_x**2, M))
-        elif (fixed_mask is not None) and mask_trainable:
-            self.mask_mat=fixed_mask.clone().detach().requires_grad_(True)
-        elif (fixed_mask is not None) and  (not mask_trainable):
-            self.mask_mat = torch.tensor(fixed_mask, requires_grad=False)
-        else:
-            raise ValueError('Wrong: fixed_mask and mask_trainable.....')
-
         self.feature = nn.Sequential(
-            nn.Linear(M, shape_x*shape_x2),
+            nn.Linear(M, shape_y**2),
             nn.ReLU(),
-            nn.BatchNorm1d(shape_x*shape_x2),  
+            nn.BatchNorm1d(shape_y**2),  
         )
-        self.noise_layer = NoisyLayer(noise_std=0.8, snr_db=50, seed=2024)
-
         self.reconstruct = UNet(in_nc=1, out_nc=1, blindspot=False)
 
-        self.tanh = nn.Tanh()
-
     def forward(self, x):
-        x = x.view(x.size(0), -1)
-        x = torch.matmul(x, self.tanh(self.mask_mat))
-        x = self.noise_layer(x)
+
         x = self.feature(x)
-        x = x.view(-1, 1, self.shape_x, self.shape_x2)
+        x = x.view(-1, 1, self.shape_y, self.shape_y)
         x = self.reconstruct(x)
 
-        return x, self.mask_mat
+        return x
+ 
 
 if __name__ == "__main__":
-    device=torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-
-    shape_x=32
-    shape_x2=64
+    shape_y=32
     M=66
 
-    network = net_AE_w_tanh_binaryloss_v3(shape_x=shape_x,shape_x2=shape_x2,M=M).to(device)
-    input_tensor = torch.randn(10,shape_x,shape_x2).to(device)
-    output_tensor, out_maskmat = network(input_tensor)
+    network = target_net_decoder_v2(M=M,shape_y=shape_y)
+    input_tensor = torch.randn(10,M)
+    output_tensor = network(input_tensor)
     print("Output tensor shape:", output_tensor.shape)
-    print("Output mask mat shape:", out_maskmat.shape)
