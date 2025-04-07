@@ -267,3 +267,4 @@ if __name__ == "__main__":
     input_tensor = torch.randn(10,M)
     output_tensor = network(input_tensor)
     print("Output tensor shape:", output_tensor.shape)
+

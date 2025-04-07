@@ -30,6 +30,4 @@ if __name__ == "__main__":
 
     print('combined_loss, mse_loss, binary_loss, ',combined_loss, mse_loss, binary_loss)
 
-
-
         

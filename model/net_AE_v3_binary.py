@@ -320,3 +320,5 @@ if __name__ == "__main__":
     output_tensor, out_maskmat = network(input_tensor)
     print("Output tensor shape:", output_tensor.shape)
     print("Output mask mat shape:", out_maskmat.shape)
+
+    

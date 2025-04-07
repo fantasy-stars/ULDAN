@@ -1,5 +1,4 @@
 from torch import nn
-import torch
 
 class discriminator_v1(nn.Module):
     def __init__(self,shape_y=32):
