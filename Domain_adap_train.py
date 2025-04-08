@@ -6,8 +6,8 @@ from utils.utils import EarlyStopping
 from model.D_net_v1 import discriminator_v1
 from model.target_net_decoder_v1 import target_net_decoder_v1
 from model.target_net_decoder_v2 import target_net_decoder_v2
-from model.source_net_decoder_v1 import source_net_decoder_v1
-from model.source_net_decoder_v2 import source_net_decoder_v2
+from ULDAN.model.source_model_decoder_v1 import source_net_decoder_v1
+from ULDAN.model.source_model_decoder_v2 import source_net_decoder_v2
 import numpy as np
 from tqdm import tqdm
 import argparse
